@@ -1,21 +1,17 @@
-version: '3.8'
+version: '3.9' # Updated to the latest Compose version
+
 x-common:
   database:
     &db-environment
-    # Do not remove the "&db-password" from the end of the line below, it is important
-    # for Panel functionality.
-    MYSQL_PASSWORD: &db-password "CHANGE_ME"
-    MYSQL_ROOT_PASSWORD: "CHANGE_ME_TOO"
+    MYSQL_PASSWORD: &db-password "CHANGE_ME" # Update to a secure password
+    MYSQL_ROOT_PASSWORD: "CHANGE_ME_TOO"    # Update to a secure root password
   panel:
     &panel-environment
-    # This URL should be the URL that your reverse proxy routes to the panel server
-    APP_URL: "https://pterodactyl.example.com"
-    # A list of valid timezones can be found here: http://php.net/manual/en/timezones.php
+    APP_URL: "https://pterodactyl.example.com" # Update with your domain
     APP_TIMEZONE: "UTC"
     APP_SERVICE_AUTHOR: "noreply@example.com"
     TRUSTED_PROXIES: "*" # Set this to your proxy IP
-    # Uncomment the line below and set to a non-empty value if you want to use Let's Encrypt
-    # to generate an SSL certificate for the Panel.
+    # Uncomment the line below if using Let's Encrypt for SSL
     # LE_EMAIL: ""
   mail:
     &mail-environment
@@ -26,17 +22,10 @@ x-common:
     MAIL_USERNAME: ""
     MAIL_PASSWORD: ""
     MAIL_ENCRYPTION: "true"
-    
-#
-___________________________________________
-# DANGER ZONE BELOW
-#
-# The remainder of this file likely does not need to be changed.
-# Please only make modifications below if you understand what you are doing.
 
 services:
   database:
-    image: mariadb:10.5
+    image: mariadb:11.0 # Updated MariaDB version for better performance and security
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     volumes:
@@ -45,18 +34,18 @@ services:
       <<: *db-environment
       MYSQL_DATABASE: "panel"
       MYSQL_USER: "pterodactyl"
-      
+
   cache:
-    image: redis:alpine
+    image: redis:7-alpine # Updated Redis version
     restart: always
 
   panel:
-    image: ghcr.io/pterodactyl/panel:latest
+    image: ghcr.io/pterodactyl/panel:latest # Latest version of Pterodactyl Panel
     restart: always
     ports:
       - "80:80"
       - "443:443"
-    links:
+    depends_on:
       - database
       - cache
     volumes:
@@ -68,13 +57,13 @@ services:
       <<: [*panel-environment, *mail-environment]
       DB_PASSWORD: *db-password
       APP_ENV: "production"
-APP_ENVIRONMENT_ONLY: "false"
-CACHE_DRIVER: "redis"
-SESSION_DRIVER: "redis"
-QUEUE_DRIVER: "redis"
-REDIS_HOST: "cache"
-DB_HOST: "database"
-DB_PORT: "3306"
+      APP_ENVIRONMENT_ONLY: "false"
+      CACHE_DRIVER: "redis"
+      SESSION_DRIVER: "redis"
+      QUEUE_DRIVER: "redis"
+      REDIS_HOST: "cache"
+      DB_HOST: "database"
+      DB_PORT: "3306"
 
 networks:
   default:
